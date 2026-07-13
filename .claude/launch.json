@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "glyx-dev",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd /d C:\\_PROJE~1\\GLYXSI~1 && npm run dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "lotofacil-frontend",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd /d C:\\Users\\ULTRA\\Downloads\\Claude\\frontend && npm run dev"
+      ],
+      "port": 5173
+    }
+  ]
+}
