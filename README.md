@@ -49,7 +49,7 @@ npm run dev
 
 ## Deploy
 
-**Postgres (Supabase):** projeto `lotofacil` criado (org RivasCode-Ops's Org, `sa-east-1`, US$ 10/mês, ref `efdfggiearsnpzyjrith`). Pegue a senha do banco em https://supabase.com/dashboard/project/efdfggiearsnpzyjrith/settings/database e coloque em `backend/.env` (veja `backend/.env.example`) — as tabelas são criadas automaticamente no primeiro start (`Base.metadata.create_all`).
+**Postgres (Supabase):** projeto `lotofacil` criado e em uso (org RivasCode-Ops's Org, `sa-east-1`, US$ 10/mês, ref `efdfggiearsnpzyjrith`). `backend/.env` já está apontando pra ele via **Session Pooler** (`aws-1-sa-east-1.pooler.supabase.com:5432`) — a conexão direta (`db.efdfggiearsnpzyjrith.supabase.co:5432`) dá timeout porque é IPv6-only e essa rede não tem rota IPv6 pra Supabase. Tabelas criadas automaticamente no startup (`Base.metadata.create_all`); RLS habilitado em `draws` (sem política — bloqueia acesso externo via API REST do Supabase, não afeta a conexão direta do backend). 50 concursos reais (3684–3733) já populados via `POST /api/draws/update`, testado ponta a ponta com o frontend.
 
 **Backend (Render):**
 1. Suba este repositório pro GitHub.
