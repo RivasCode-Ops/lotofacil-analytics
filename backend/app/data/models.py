@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Float, Integer, String
+from sqlalchemy import Boolean, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -28,3 +28,21 @@ class SavedGame(Base):
     created_at: Mapped[str] = mapped_column(String(32))
     checked: Mapped[bool] = mapped_column(Boolean, default=False)
     hits: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class ScoreWeights(Base):
+    """Pesos dos critérios de score, recalibrados periodicamente por
+    backtest estatístico (ver app/analytics/calibration.py). Linha única
+    (id=1). Todos os pesos começam em 1.0 (nenhuma vantagem assumida)."""
+
+    __tablename__ = "score_weights"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    paridade: Mapped[float] = mapped_column(Float, default=1.0)
+    faixa: Mapped[float] = mapped_column(Float, default=1.0)
+    frequencia: Mapped[float] = mapped_column(Float, default=1.0)
+    soma: Mapped[float] = mapped_column(Float, default=1.0)
+    repeticao: Mapped[float] = mapped_column(Float, default=1.0)
+    updated_at: Mapped[str] = mapped_column(String(32))
+    sample_size: Mapped[int] = mapped_column(Integer, default=0)
+    conclusion: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.data.repository import list_draw_numbers
+from app.data.repository import get_score_weights, list_draw_numbers
 from app.engine.statistics import calculate_average_sum, calculate_frequency, classify_numbers
 from app.generator.games import generate_games
 
@@ -24,5 +24,6 @@ def generate(n: int = 5, db: Session = Depends(get_db)):
         classification=classify_numbers(frequency),
         average_sum=calculate_average_sum(draws),
         previous_draw=draws[-1],
+        weights=get_score_weights(db),
     )
     return jogos

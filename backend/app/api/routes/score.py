@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.data.repository import list_draw_numbers
+from app.data.repository import get_score_weights, list_draw_numbers
 from app.engine.statistics import calculate_average_sum, calculate_frequency, classify_numbers
 from app.scoring.score import calculate_score, rank_games
 
@@ -41,4 +41,5 @@ def rank(payload: RankRequest, db: Session = Depends(get_db)):
         classification=ctx["classification"],
         average_sum=ctx["average_sum"],
         previous_draw=ctx["previous_draw"],
+        weights=get_score_weights(db),
     )

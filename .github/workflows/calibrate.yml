@@ -1,0 +1,16 @@
+name: Recalibrar pesos do score
+
+on:
+  schedule:
+    # Todo domingo às 12:00 UTC (09:00 BRT) — depois de acumular concursos da semana
+    - cron: "0 12 * * 0"
+  workflow_dispatch: {}
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar POST /api/analytics/calibrate no backend
+        run: |
+          curl -sf -X POST "https://lotofacil-backend-ih3h.onrender.com/api/analytics/calibrate?games_per_draw=500" \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}"

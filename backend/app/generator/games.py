@@ -10,6 +10,7 @@ def generate_games(
     classification: dict[str, list[int]],
     average_sum: float,
     previous_draw: list[int],
+    weights: dict[str, float] | None = None,
     pool_multiplier: int = 5,
     max_attempts: int = 200_000,
 ) -> list[dict]:
@@ -55,6 +56,7 @@ def generate_games(
                 classification=classification,
                 average_sum=average_sum,
                 previous_draw=previous_draw,
+                weights=weights,
             ),
         }
         for combo in candidatos

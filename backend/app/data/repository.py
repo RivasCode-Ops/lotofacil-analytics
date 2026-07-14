@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 
 from app.analytics.performance import calculate_hits
 from app.data.client import DataSourceError, fetch_results
-from app.data.models import Draw, SavedGame
+from app.data.models import Draw, SavedGame, ScoreWeights
+
+DEFAULT_WEIGHTS = {"paridade": 1.0, "faixa": 1.0, "frequencia": 1.0, "soma": 1.0, "repeticao": 1.0}
 
 
 def update_database(db: Session, last_n: int = 50) -> dict:
@@ -99,3 +101,34 @@ def check_saved_games(db: Session) -> dict:
         checked_now += 1
     db.commit()
     return {"checked_now": checked_now, "still_pending": len(pending) - checked_now}
+
+
+def get_score_weights(db: Session) -> dict:
+    row = db.get(ScoreWeights, 1)
+    if not row:
+        return dict(DEFAULT_WEIGHTS)
+    return {
+        "paridade": row.paridade,
+        "faixa": row.faixa,
+        "frequencia": row.frequencia,
+        "soma": row.soma,
+        "repeticao": row.repeticao,
+    }
+
+
+def save_score_weights(db: Session, weights: dict, sample_size: int, conclusion: str) -> ScoreWeights:
+    row = db.get(ScoreWeights, 1)
+    if not row:
+        row = ScoreWeights(id=1)
+        db.add(row)
+    row.paridade = weights["paridade"]
+    row.faixa = weights["faixa"]
+    row.frequencia = weights["frequencia"]
+    row.soma = weights["soma"]
+    row.repeticao = weights["repeticao"]
+    row.updated_at = datetime.now(timezone.utc).isoformat()
+    row.sample_size = sample_size
+    row.conclusion = conclusion
+    db.commit()
+    db.refresh(row)
+    return row

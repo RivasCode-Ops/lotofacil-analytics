@@ -7,6 +7,7 @@ function Dashboard() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [calibration, setCalibration] = useState(null);
 
   useEffect(() => {
     api
@@ -16,6 +17,11 @@ function Dashboard() {
         setError("Não foi possível carregar as estatísticas. Rode a atualização de concursos primeiro.")
       )
       .finally(() => setLoading(false));
+
+    api
+      .get("/analytics/weights")
+      .then((res) => setCalibration(res.data))
+      .catch(() => {});
   }, []);
 
   if (loading) return <p className="text-slate-400 p-6">Carregando...</p>;
@@ -49,6 +55,25 @@ function Dashboard() {
           <p className="text-slate-300">{stats.classificacao.frios.join(", ")}</p>
         </div>
       </div>
+
+      {calibration && (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
+          <p className="text-slate-300 font-semibold">Calibração do score</p>
+          <div className="flex flex-wrap gap-3 text-xs text-slate-400">
+            {Object.entries(calibration.pesos).map(([nome, peso]) => (
+              <span key={nome} className="bg-slate-800 rounded-full px-3 py-1 capitalize">
+                {nome}: {peso.toFixed(2)}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs text-slate-500">
+            {calibration.updated_at
+              ? `última calibração: ${new Date(calibration.updated_at).toLocaleString("pt-BR")} · amostra: ${calibration.sample_size.toLocaleString("pt-BR")} jogos`
+              : "ainda não calibrado"}
+          </p>
+          <p className="text-xs text-slate-500 italic">{calibration.conclusion}</p>
+        </div>
+      )}
     </div>
   );
 }
