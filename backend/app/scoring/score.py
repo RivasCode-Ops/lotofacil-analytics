@@ -42,12 +42,27 @@ def _repetition_score(game: list[int], previous_draw: list[int]) -> float:
     return _clip(100 * (1 - distancia / 9))
 
 
+def _gap_score(game: list[int], gap_classification: dict[str, list[int]] | None) -> float:
+    """100 quando o jogo tem ~2-3 números 'atrasados'. Reflete a crença
+    popular de que número atrasado tem mais chance de sair (falácia do
+    apostador — matematicamente sem efeito num sorteio independente), mas
+    é testado pela calibração como qualquer outro critério."""
+    if not gap_classification:
+        return 100.0
+    atrasados = set(gap_classification.get("atrasados", []))
+    count = len(set(game) & atrasados)
+    ideal = 2.5
+    distancia = abs(count - ideal)
+    return _clip(100 * (1 - distancia / ideal))
+
+
 def calculate_score(
     game: list[int],
     *,
     classification: dict[str, list[int]],
     average_sum: float,
     previous_draw: list[int],
+    gap_classification: dict[str, list[int]] | None = None,
     weights: dict[str, float] | None = None,
 ) -> dict:
     """Pontua um jogo em cada critério (0-100) e combina num score total."""
@@ -57,6 +72,7 @@ def calculate_score(
         "frequencia": _frequency_score(game, classification),
         "soma": _sum_score(game, average_sum),
         "repeticao": _repetition_score(game, previous_draw),
+        "atraso": _gap_score(game, gap_classification),
     }
     pesos = weights or {k: 1 for k in criterios}
     total_peso = sum(pesos.get(k, 0) for k in criterios) or 1

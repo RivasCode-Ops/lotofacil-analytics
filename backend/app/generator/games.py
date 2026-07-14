@@ -10,6 +10,7 @@ def generate_games(
     classification: dict[str, list[int]],
     average_sum: float,
     previous_draw: list[int],
+    gap_classification: dict[str, list[int]] | None = None,
     weights: dict[str, float] | None = None,
     pool_multiplier: int = 5,
     max_attempts: int = 200_000,
@@ -56,6 +57,7 @@ def generate_games(
                 classification=classification,
                 average_sum=average_sum,
                 previous_draw=previous_draw,
+                gap_classification=gap_classification,
                 weights=weights,
             ),
         }

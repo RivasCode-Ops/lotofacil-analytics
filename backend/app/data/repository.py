@@ -7,7 +7,14 @@ from app.analytics.performance import calculate_hits
 from app.data.client import DataSourceError, fetch_results
 from app.data.models import Draw, SavedGame, ScoreWeights
 
-DEFAULT_WEIGHTS = {"paridade": 1.0, "faixa": 1.0, "frequencia": 1.0, "soma": 1.0, "repeticao": 1.0}
+DEFAULT_WEIGHTS = {
+    "paridade": 1.0,
+    "faixa": 1.0,
+    "frequencia": 1.0,
+    "soma": 1.0,
+    "repeticao": 1.0,
+    "atraso": 1.0,
+}
 
 
 def update_database(db: Session, last_n: int = 50) -> dict:
@@ -141,6 +148,7 @@ def get_score_weights(db: Session) -> dict:
         "frequencia": row.frequencia,
         "soma": row.soma,
         "repeticao": row.repeticao,
+        "atraso": row.atraso,
     }
 
 
@@ -154,6 +162,7 @@ def save_score_weights(db: Session, weights: dict, sample_size: int, conclusion:
     row.frequencia = weights["frequencia"]
     row.soma = weights["soma"]
     row.repeticao = weights["repeticao"]
+    row.atraso = weights.get("atraso", 1.0)
     row.updated_at = datetime.now(timezone.utc).isoformat()
     row.sample_size = sample_size
     row.conclusion = conclusion

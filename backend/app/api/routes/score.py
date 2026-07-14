@@ -4,7 +4,13 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.data.repository import get_score_weights, list_draw_numbers
-from app.engine.statistics import calculate_average_sum, calculate_frequency, classify_numbers
+from app.engine.statistics import (
+    calculate_average_sum,
+    calculate_frequency,
+    calculate_gaps,
+    classify_by_gap,
+    classify_numbers,
+)
 from app.scoring.score import calculate_score, rank_games
 
 router = APIRouter(prefix="/score", tags=["score"])
@@ -29,6 +35,7 @@ def _context(db: Session) -> dict:
         "classification": classify_numbers(frequency),
         "average_sum": calculate_average_sum(draws),
         "previous_draw": draws[-1],
+        "gap_classification": classify_by_gap(calculate_gaps(draws)),
     }
 
 
@@ -41,5 +48,6 @@ def rank(payload: RankRequest, db: Session = Depends(get_db)):
         classification=ctx["classification"],
         average_sum=ctx["average_sum"],
         previous_draw=ctx["previous_draw"],
+        gap_classification=ctx["gap_classification"],
         weights=get_score_weights(db),
     )

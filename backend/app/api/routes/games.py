@@ -3,7 +3,13 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.data.repository import get_score_weights, list_draw_numbers
-from app.engine.statistics import calculate_average_sum, calculate_frequency, classify_numbers
+from app.engine.statistics import (
+    calculate_average_sum,
+    calculate_frequency,
+    calculate_gaps,
+    classify_by_gap,
+    classify_numbers,
+)
 from app.generator.games import generate_games
 
 router = APIRouter(prefix="/games", tags=["games"])
@@ -24,6 +30,7 @@ def generate(n: int = 5, db: Session = Depends(get_db)):
         classification=classify_numbers(frequency),
         average_sum=calculate_average_sum(draws),
         previous_draw=draws[-1],
+        gap_classification=classify_by_gap(calculate_gaps(draws)),
         weights=get_score_weights(db),
     )
     return jogos

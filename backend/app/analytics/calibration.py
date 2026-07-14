@@ -4,14 +4,20 @@ from sqlalchemy.orm import Session
 
 from app.analytics.performance import calculate_hits
 from app.data.repository import list_draw_numbers
-from app.engine.statistics import calculate_average_sum, calculate_frequency, classify_numbers
+from app.engine.statistics import (
+    calculate_average_sum,
+    calculate_frequency,
+    calculate_gaps,
+    classify_by_gap,
+    classify_numbers,
+)
 from app.generator.combinations import generate_combination
 from app.scoring.score import calculate_score
 
-CRITERIA = ("paridade", "faixa", "frequencia", "soma", "repeticao")
+CRITERIA = ("paridade", "faixa", "frequencia", "soma", "repeticao", "atraso")
 
-# Bonferroni aproximado para 6 testes (5 critérios + total) a ~p<0.05: 0.05/6 ≈ 0.0083 -> z ≈ 2.64
-SIGNIFICANCE_Z = 2.64
+# Bonferroni aproximado para 7 testes (6 critérios + total) a ~p<0.05: 0.05/7 ≈ 0.0071 -> z ≈ 2.69
+SIGNIFICANCE_Z = 2.69
 
 
 def backtest_scoring(db: Session, games_per_draw: int = 200) -> list[dict]:
@@ -31,6 +37,7 @@ def backtest_scoring(db: Session, games_per_draw: int = 200) -> list[dict]:
     frequency = calculate_frequency(draws)
     classification = classify_numbers(frequency)
     average_sum = calculate_average_sum(draws)
+    gap_classification = classify_by_gap(calculate_gaps(draws))
 
     data_points = []
     for i, target_draw in enumerate(draws):
@@ -42,6 +49,7 @@ def backtest_scoring(db: Session, games_per_draw: int = 200) -> list[dict]:
                 classification=classification,
                 average_sum=average_sum,
                 previous_draw=previous_draw,
+                gap_classification=gap_classification,
             )
             hits = calculate_hits(game, target_draw)
             data_points.append({**score["criterios"], "total": score["total"], "hits": hits})

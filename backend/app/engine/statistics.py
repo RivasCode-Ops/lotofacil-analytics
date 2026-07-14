@@ -65,10 +65,84 @@ def calculate_repetition(draws: list[list[int]]) -> dict:
     }
 
 
+def calculate_new_vs_repeat(draws: list[list[int]]) -> dict:
+    """Distribuição de quantos números se repetem vs. são novos de um
+    concurso para o seguinte (novos = 15 - repetidos)."""
+    if len(draws) < 2:
+        return {"distribuicao_repetidos": {}, "distribuicao_novos": {}}
+    dist_rep: dict[int, int] = {}
+    dist_novos: dict[int, int] = {}
+    for anterior, atual in zip(draws, draws[1:]):
+        rep = len(set(anterior) & set(atual))
+        novos = 15 - rep
+        dist_rep[rep] = dist_rep.get(rep, 0) + 1
+        dist_novos[novos] = dist_novos.get(novos, 0) + 1
+    return {
+        "distribuicao_repetidos": dict(sorted(dist_rep.items())),
+        "distribuicao_novos": dict(sorted(dist_novos.items())),
+    }
+
+
+def calculate_gaps(draws: list[list[int]]) -> dict[int, int]:
+    """Atraso de cada número: quantos concursos se passaram desde a última
+    vez que saiu (0 = saiu no concurso mais recente). `draws` em ordem
+    cronológica (mais antigo primeiro)."""
+    gaps = {}
+    for n in range(1, 26):
+        gap = len(draws)  # nunca saiu na amostra
+        for i in range(len(draws) - 1, -1, -1):
+            if n in draws[i]:
+                gap = len(draws) - 1 - i
+                break
+        gaps[n] = gap
+    return gaps
+
+
+def classify_by_gap(gaps: dict[int, int]) -> dict[str, list[int]]:
+    """Divide os 25 números em tercis por atraso: atrasados (maior gap),
+    médios, recentes (saíram há pouco)."""
+    ranked = sorted(gaps.items(), key=lambda kv: kv[1], reverse=True)
+    third = len(ranked) // 3
+    atrasados = sorted(n for n, _ in ranked[:third])
+    recentes = sorted(n for n, _ in ranked[-third:])
+    medios = sorted(n for n, _ in ranked[third: len(ranked) - third])
+    return {"atrasados": atrasados, "medios": medios, "recentes": recentes}
+
+
+def calculate_gap_distribution(draws: list[list[int]]) -> dict:
+    """Intervalo (em concursos) entre aparições consecutivas de cada número,
+    agregado numa distribuição — gap=1 significa que saiu em concursos
+    seguidos, gap=2 significa que 'pulou' um concurso (intercalado), etc.
+    Compara com a distribuição teórica esperada num sorteio aleatório puro
+    (geométrica, p=15/25=0.6): se os dados reais baterem com a teórica —
+    e devem bater — não há padrão de intercalação real explorável."""
+    observado: dict[int, int] = {}
+    for n in range(1, 26):
+        aparicoes = [i for i, draw in enumerate(draws) if n in draw]
+        for a, b in zip(aparicoes, aparicoes[1:]):
+            gap = b - a
+            observado[gap] = observado.get(gap, 0) + 1
+
+    total = sum(observado.values())
+    p = 15 / 25
+    max_gap = max(observado.keys(), default=1)
+    teorico = {}
+    for gap in range(1, max_gap + 1):
+        prob = ((1 - p) ** (gap - 1)) * p
+        teorico[gap] = round(prob * total, 1)
+
+    return {
+        "observado": dict(sorted(observado.items())),
+        "teorico_sorteio_aleatorio": teorico,
+        "total_intervalos": total,
+    }
+
+
 def get_statistics_summary(draws: list[list[int]]) -> dict:
     """`draws` em ordem cronológica (mais antigo primeiro). Saída estruturada
     pronta para consumo pelo resto do sistema (regras, score, API)."""
     frequency = calculate_frequency(draws)
+    gaps = calculate_gaps(draws)
     return {
         "total_concursos_analisados": len(draws),
         "frequencia": frequency,
@@ -77,4 +151,8 @@ def get_statistics_summary(draws: list[list[int]]) -> dict:
         "paridade": calculate_parity(draws),
         "primos": calculate_primes(draws),
         "repeticao": calculate_repetition(draws),
+        "novos_vs_repetidos": calculate_new_vs_repeat(draws),
+        "atraso": gaps,
+        "classificacao_atraso": classify_by_gap(gaps),
+        "distribuicao_intervalos": calculate_gap_distribution(draws),
     }

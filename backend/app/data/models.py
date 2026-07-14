@@ -43,6 +43,7 @@ class ScoreWeights(Base):
     frequencia: Mapped[float] = mapped_column(Float, default=1.0)
     soma: Mapped[float] = mapped_column(Float, default=1.0)
     repeticao: Mapped[float] = mapped_column(Float, default=1.0)
+    atraso: Mapped[float] = mapped_column(Float, default=1.0)
     updated_at: Mapped[str] = mapped_column(String(32))
     sample_size: Mapped[int] = mapped_column(Integer, default=0)
     conclusion: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -56,6 +56,37 @@ function Dashboard() {
         </div>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p className="text-red-400 font-semibold mb-2">Atrasados</p>
+          <p className="text-slate-300 text-sm">{stats.classificacao_atraso.atrasados.join(", ")}</p>
+        </div>
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p className="text-slate-300 font-semibold mb-2">Atraso médio</p>
+          <p className="text-slate-300 text-sm">
+            {Object.entries(stats.atraso)
+              .filter(([, gap]) => gap > 0)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 5)
+              .map(([n, gap]) => `${n} (${gap})`)
+              .join(", ") || "todos saíram no último concurso"}
+          </p>
+        </div>
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p className="text-slate-300 font-semibold mb-2">Intervalos entre aparições</p>
+          <p className="text-xs text-slate-500 mb-1">real vs. esperado num sorteio aleatório</p>
+          <div className="space-y-1 text-xs">
+            {Object.entries(stats.distribuicao_intervalos.observado)
+              .slice(0, 4)
+              .map(([gap, obs]) => (
+                <p key={gap} className="text-slate-300">
+                  gap={gap}: {obs} real · {stats.distribuicao_intervalos.teorico_sorteio_aleatorio[gap]} esperado
+                </p>
+              ))}
+          </div>
+        </div>
+      </div>
+
       {calibration && (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
           <p className="text-slate-300 font-semibold">Calibração do score</p>

@@ -7,7 +7,7 @@ from app.analytics.performance import evaluate_performance
 from app.core.config import settings
 from app.core.database import get_db
 from app.data.models import ScoreWeights
-from app.data.repository import get_draw_by_contest, get_last_draw, save_score_weights
+from app.data.repository import get_draw_by_contest, get_last_draw, get_score_weights, save_score_weights
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -63,19 +63,13 @@ def weights(db: Session = Depends(get_db)):
     row = db.get(ScoreWeights, 1)
     if not row:
         return {
-            "pesos": {"paridade": 1.0, "faixa": 1.0, "frequencia": 1.0, "soma": 1.0, "repeticao": 1.0},
+            "pesos": get_score_weights(db),
             "updated_at": None,
             "sample_size": 0,
             "conclusion": "nunca calibrado — usando pesos padrão (todos 1.0)",
         }
     return {
-        "pesos": {
-            "paridade": row.paridade,
-            "faixa": row.faixa,
-            "frequencia": row.frequencia,
-            "soma": row.soma,
-            "repeticao": row.repeticao,
-        },
+        "pesos": get_score_weights(db),
         "updated_at": row.updated_at,
         "sample_size": row.sample_size,
         "conclusion": row.conclusion,
