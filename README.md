@@ -2,6 +2,8 @@
 
 Sistema de análise e geração de jogos da Lotofácil.
 
+**No ar:** [lotofacil-analytics.vercel.app](https://lotofacil-analytics.vercel.app) — testado ponta a ponta (Dashboard, Gerar Jogos, Resultados) contra dados reais.
+
 Stack: FastAPI (backend) + React/Tailwind (frontend) + PostgreSQL.
 
 ## Estrutura
@@ -51,19 +53,29 @@ npm run dev
 
 **Postgres (Supabase):** projeto `lotofacil` criado e em uso (org RivasCode-Ops's Org, `sa-east-1`, US$ 10/mês, ref `efdfggiearsnpzyjrith`). `backend/.env` já está apontando pra ele via **Session Pooler** (`aws-1-sa-east-1.pooler.supabase.com:5432`) — a conexão direta (`db.efdfggiearsnpzyjrith.supabase.co:5432`) dá timeout porque é IPv6-only e essa rede não tem rota IPv6 pra Supabase. Tabelas criadas automaticamente no startup (`Base.metadata.create_all`); RLS habilitado em `draws` (sem política — bloqueia acesso externo via API REST do Supabase, não afeta a conexão direta do backend). 50 concursos reais (3684–3733) já populados via `POST /api/draws/update`, testado ponta a ponta com o frontend.
 
-**Backend (Render):**
-1. Suba este repositório pro GitHub.
-2. No Render, "New > Web Service" apontando pro repo — ele detecta o `render.yaml` (usa `backend/Dockerfile`).
-3. Configure as env vars `DATABASE_URL` (a do Supabase acima) e `CORS_ORIGINS` (a URL do frontend na Vercel, depois do passo seguinte).
-4. Depois do primeiro deploy, chame `POST /api/draws/update` uma vez pra popular o banco.
+**GitHub:** [github.com/RivasCode-Ops/lotofacil-analytics](https://github.com/RivasCode-Ops/lotofacil-analytics) (branch `master`).
 
-**Frontend (Vercel):**
-1. Import do repositório, root directory = `frontend`.
-2. Framework preset: Vite.
-3. Env var `VITE_API_URL` = URL pública do backend no Render (ex: `https://lotofacil-backend.onrender.com`).
-4. Depois do deploy, volte no Render e ajuste `CORS_ORIGINS` pra URL da Vercel.
+**Backend (Render):** no ar em **https://lotofacil-backend-ih3h.onrender.com** — testado (`/api/health`, `/api/draws/last`, `/api/statistics`, `/api/games/generate`), respondendo com os 50 concursos reais do Postgres.
+- Serviço `lotofacil-backend`, plano Free (dorme após inatividade — primeira requisição depois de um tempo parado pode levar ~50s).
+- **Pegadinha do Render:** o fluxo "New > Web Service" (autodetect) não respeita todos os campos do `render.yaml` — o `dockerContext: ./backend` foi ignorado e o build falhava com `requirements.txt not found`. Corrigido configurando manualmente **Docker Build Context Directory = `backend`** nas settings do serviço no dashboard. Se recriar o serviço do zero, usar o fluxo "New > Blueprint" (que lê o `render.yaml` de verdade) evita esse problema.
+- Env vars: `DATABASE_URL` (Session Pooler do Supabase) e `CORS_ORIGINS=http://localhost:5173,https://lotofacil-analytics.vercel.app`.
 
-**Pendente:** push pro GitHub (repo local ainda não tem remote) e a criação das contas/projetos no Render e na Vercel — isso precisa ser feito por você, eu não tenho acesso a essas plataformas.
+**Frontend (Vercel):** no ar em **https://lotofacil-analytics.vercel.app** — root directory `frontend`, framework Vite, env var `VITE_API_URL=https://lotofacil-backend-ih3h.onrender.com`. No import, o Vercel sugeriu o preset "Services" (monorepo automático, exigiria `vercel.json` extra) — descartado em favor de configurar o Root Directory manualmente.
+
+**Ciclo fechado e validado:** Supabase (dados reais) → Render (backend) → Vercel (frontend), testado no browser em produção — Dashboard, Gerar Jogos e Resultados funcionando com dados reais, sem erros de console.
+
+## Jogo do dia + conferência automática
+
+- `POST /api/saved-games` salva os jogos gerados (concurso-alvo = último concurso no banco + 1, a não ser que você passe `target_contest` explícito).
+- `GET /api/saved-games` lista; `POST /api/saved-games/check` confere os pendentes contra o resultado real (só marca como conferido quando o concurso-alvo já estiver no banco).
+- Tela **Meus Jogos** no frontend faz isso pela interface.
+- `POST /api/sync` roda `update_database` + `check_saved_games` numa chamada só — pensado pra automação, protegido por header `X-Cron-Secret` (não faz nada se o header não bater com `CRON_SECRET` no `.env`/env var do Render).
+
+**Automação (GitHub Actions):** [.github/workflows/sync-draws.yml](.github/workflows/sync-draws.yml) roda `POST /api/sync` todo dia às 23:30 UTC (20:30 BRT, depois do sorteio), seg-sáb. **Falta configurar 2 coisas manualmente (eu não tenho acesso):**
+1. No Render, adicionar a env var `CRON_SECRET` no serviço `lotofacil-backend` (mesmo valor usado no `backend/.env` local).
+2. No GitHub, ir em `Settings > Secrets and variables > Actions` do repositório e criar o secret `CRON_SECRET` com o mesmo valor.
+
+Sem isso, o workflow roda mas recebe 401 do backend (a chamada não tem efeito, mas também não quebra nada). Pode disparar manualmente pela aba "Actions" do GitHub (botão "Run workflow") pra testar sem esperar o horário agendado.
 
 ## Status
 

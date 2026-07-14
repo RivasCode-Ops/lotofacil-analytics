@@ -1,6 +1,19 @@
 from fastapi import APIRouter
 
-from app.api.routes import analytics, closure, combinations, draws, filters, games, health, rules, score, statistics
+from app.api.routes import (
+    analytics,
+    closure,
+    combinations,
+    draws,
+    filters,
+    games,
+    health,
+    rules,
+    saved_games,
+    score,
+    statistics,
+    sync,
+)
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(health.router)
@@ -13,3 +26,5 @@ api_router.include_router(score.router)
 api_router.include_router(games.router)
 api_router.include_router(closure.router)
 api_router.include_router(analytics.router)
+api_router.include_router(saved_games.router)
+api_router.include_router(sync.router)

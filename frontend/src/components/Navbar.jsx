@@ -19,6 +19,9 @@ function Navbar() {
         <NavLink to="/resultados" className={linkClass}>
           Resultados
         </NavLink>
+        <NavLink to="/meus-jogos" className={linkClass}>
+          Meus Jogos
+        </NavLink>
       </div>
     </nav>
   );

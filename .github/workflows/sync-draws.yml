@@ -1,0 +1,16 @@
+name: Sincronizar concursos e conferir jogos
+
+on:
+  schedule:
+    # 23:30 UTC = 20:30 BRT — depois do horário usual do sorteio da Lotofácil
+    - cron: "30 23 * * 1-6"
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar POST /api/sync no backend
+        run: |
+          curl -sf -X POST "https://lotofacil-backend-ih3h.onrender.com/api/sync" \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}"

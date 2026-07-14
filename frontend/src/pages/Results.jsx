@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useGames } from "../context/GamesContext";
+import { api } from "../services/api";
 
 function scoreColor(total) {
   if (total >= 85) return "text-emerald-400";
@@ -9,6 +11,22 @@ function scoreColor(total) {
 
 function Results() {
   const { games, lastGeneratedAt } = useGames();
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState(null);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveMessage(null);
+    try {
+      const payload = { games: games.map((g) => ({ game: g.game, total: g.total })) };
+      const res = await api.post("/saved-games", payload);
+      setSaveMessage(`${res.data.length} jogo(s) salvo(s) como jogo do dia — concurso alvo ${res.data[0].target_contest}.`);
+    } catch (err) {
+      setSaveMessage(err.response?.data?.detail ?? "Erro ao salvar os jogos.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (!games.length) {
     return (
@@ -27,6 +45,20 @@ function Results() {
         <h1 className="text-2xl font-bold text-slate-100">Resultados</h1>
         {lastGeneratedAt && <span className="text-xs text-slate-500">gerado em {lastGeneratedAt}</span>}
       </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-semibold rounded-lg px-4 py-2 text-sm transition-colors"
+        >
+          {saving ? "Salvando..." : "Salvar jogo do dia"}
+        </button>
+        <Link to="/meus-jogos" className="text-slate-400 hover:text-slate-200 text-sm underline">
+          Ver jogos salvos
+        </Link>
+      </div>
+      {saveMessage && <p className="text-sm text-slate-400">{saveMessage}</p>}
 
       <div className="grid gap-4">
         {games.map((item, idx) => (

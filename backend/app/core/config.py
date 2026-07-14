@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8001
     cors_origins: str = "http://localhost:5173"
+    cron_secret: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -4,6 +4,7 @@ import { GamesProvider } from "./context/GamesContext";
 import Dashboard from "./pages/Dashboard";
 import Generate from "./pages/Generate";
 import Results from "./pages/Results";
+import SavedGames from "./pages/SavedGames";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/gerar" element={<Generate />} />
             <Route path="/resultados" element={<Results />} />
+            <Route path="/meus-jogos" element={<SavedGames />} />
           </Routes>
         </div>
       </BrowserRouter>
