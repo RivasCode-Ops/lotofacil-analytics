@@ -77,6 +77,14 @@ npm run dev
 
 Sem isso, o workflow roda mas recebe 401 do backend (a chamada não tem efeito, mas também não quebra nada). Pode disparar manualmente pela aba "Actions" do GitHub (botão "Run workflow") pra testar sem esperar o horário agendado.
 
+## Calibração estatística dos pesos (agente recorrente)
+
+`POST /api/analytics/calibrate` (protegido por `X-Cron-Secret`) roda um backtest: gera milhares de jogos aleatórios contra cada um dos 50 concursos reais e testa correlação de Pearson entre cada critério do score (paridade, faixa, frequência, soma, repetição) e os acertos reais, com correção estatística pra múltiplas comparações. Só ajusta os pesos se achar correlação genuinamente significativa. `GET /api/analytics/weights` expõe o resultado atual; o Dashboard mostra isso com transparência total. [.github/workflows/calibrate.yml](.github/workflows/calibrate.yml) roda isso toda semana (domingo).
+
+**Resultado real (25.000 pontos de amostra):** nenhuma correlação passou de ±0.02, nenhuma significativa. Pesos continuam em 1.0. Isso é o esperado — a Lotofácil é sorteio aleatório independente, sem padrão explorável nos dados históricos.
+
+**Investigação nos repositórios de referência do prompt original:** conferi o que `Mekylei-Belchior/lotofacil`, `luizalaquini/LOTOFACIL-2.0` e `gugapinheiro/lotofacil` realmente fazem. Nenhum prevê números. O primeiro usa "rede neural" no nome mas a IA nunca é conectada a nenhuma previsão (só filtro por frequência histórica); o segundo é estatística descritiva básica (o próprio autor avisa que "não é milagre que vai te fazer ganhar"); o terceiro é só um dump das 3.268.760 combinações possíveis, sem nenhuma pretensão preditiva. Este app já cobre tudo que existe de legítimo nessa categoria (frequência, paridade, fechamentos) e vai além ao testar estatisticamente se algum critério tem correlação real — nenhum outro projeto pesquisado faz isso.
+
 ## Status
 
 - [x] Etapa 1 — estrutura inicial

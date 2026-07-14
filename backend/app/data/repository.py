@@ -103,6 +103,34 @@ def check_saved_games(db: Session) -> dict:
     return {"checked_now": checked_now, "still_pending": len(pending) - checked_now}
 
 
+def get_saved_games_performance(db: Session) -> dict:
+    """Resumo agregado dos jogos do dia já conferidos: média/melhor/pior
+    acerto e distribuição — visão de como o gerador está indo na vida real,
+    ao longo do tempo (diferente da calibração, que é um backtest sintético)."""
+    checked = list(db.scalars(select(SavedGame).where(SavedGame.checked.is_(True))))
+    if not checked:
+        return {
+            "total_conferidos": 0,
+            "media_acertos": None,
+            "melhor_acerto": None,
+            "pior_acerto": None,
+            "distribuicao_acertos": {},
+        }
+
+    hits = [g.hits for g in checked]
+    distribuicao: dict[int, int] = {}
+    for h in hits:
+        distribuicao[h] = distribuicao.get(h, 0) + 1
+
+    return {
+        "total_conferidos": len(checked),
+        "media_acertos": round(sum(hits) / len(hits), 2),
+        "melhor_acerto": max(hits),
+        "pior_acerto": min(hits),
+        "distribuicao_acertos": dict(sorted(distribuicao.items())),
+    }
+
+
 def get_score_weights(db: Session) -> dict:
     row = db.get(ScoreWeights, 1)
     if not row:

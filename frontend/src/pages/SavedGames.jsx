@@ -10,6 +10,7 @@ function hitsColor(hits) {
 
 function SavedGames() {
   const [savedGames, setSavedGames] = useState([]);
+  const [performance, setPerformance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState(null);
@@ -22,6 +23,11 @@ function SavedGames() {
       .then((res) => setSavedGames(res.data))
       .catch(() => setError("Não foi possível carregar os jogos salvos."))
       .finally(() => setLoading(false));
+
+    api
+      .get("/saved-games/performance")
+      .then((res) => setPerformance(res.data))
+      .catch(() => {});
   };
 
   useEffect(load, []);
@@ -61,6 +67,30 @@ function SavedGames() {
       </div>
 
       {checkMessage && <p className="text-sm text-slate-400">{checkMessage}</p>}
+
+      {performance && performance.total_conferidos > 0 && (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p className="text-slate-300 font-semibold mb-3">Desempenho real (jogos já conferidos)</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div>
+              <p className="text-slate-500 text-xs">Conferidos</p>
+              <p className="text-slate-100 font-bold">{performance.total_conferidos}</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs">Média de acertos</p>
+              <p className="text-slate-100 font-bold">{performance.media_acertos}</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs">Melhor</p>
+              <p className="text-emerald-400 font-bold">{performance.melhor_acerto}</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs">Pior</p>
+              <p className="text-slate-400 font-bold">{performance.pior_acerto}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!savedGames.length && (
         <p className="text-slate-400">Nenhum jogo salvo ainda — gere jogos e clique em "Salvar jogo do dia".</p>

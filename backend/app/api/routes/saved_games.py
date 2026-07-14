@@ -4,7 +4,13 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.data.models import SavedGame
-from app.data.repository import check_saved_games, get_last_draw, list_saved_games, save_games
+from app.data.repository import (
+    check_saved_games,
+    get_last_draw,
+    get_saved_games_performance,
+    list_saved_games,
+    save_games,
+)
 
 router = APIRouter(prefix="/saved-games", tags=["saved-games"])
 
@@ -51,6 +57,11 @@ def create(payload: SaveGamesRequest, db: Session = Depends(get_db)):
 @router.get("")
 def list_all(only_unchecked: bool = False, db: Session = Depends(get_db)):
     return [_serialize(s) for s in list_saved_games(db, only_unchecked=only_unchecked)]
+
+
+@router.get("/performance")
+def performance(db: Session = Depends(get_db)):
+    return get_saved_games_performance(db)
 
 
 @router.post("/check")
